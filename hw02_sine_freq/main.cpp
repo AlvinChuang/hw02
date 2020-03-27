@@ -35,7 +35,7 @@ int main(){
         halfCycle = zeroCross - 1; // =(number of cycle)*2
         // freq = numOfCycle / (timeInterval*(lastI-fistI))
         freq = (halfCycle/2.f) / ((1.f/sample)*(lastI-firstI));
-        pc.printf("%f\r\n", freq); // print freq
+        pc.printf("%f\r\n", freq); // print freq on computer
         wait(0.5); // wait 0.5 sec for next freq calculation
     }
 }
