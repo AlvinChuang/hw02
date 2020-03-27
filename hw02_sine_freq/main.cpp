@@ -4,14 +4,14 @@ Serial pc( USBTX, USBRX);
 AnalogIn Ain(A0);
 
 const int sample = 512; // sampling freq (sampling rate) (>4(2)*freq) (for freq<100Hz)
-float ADCdata[512]; // index
+float ADCdata[sample]; // index
 int i;
 
 float freq; // signal frequency
 int zeroCross; // numbers of zero crossing
-const int offset = 1; // Vdd/2 (zero)
-int fistI = -1; // index of first zero crossing
-int lastI = -1; // index of last zero crossing
+const float offset = 0.2988; // ADC readed input for offset 1V (zero) //doesn't affect freq much
+int firstI; // index of first zero crossing
+int lastI; // index of last zero crossing
 int halfCycle; // number of half cycle (=zeroCross-1)
 
 int main(){
@@ -23,18 +23,24 @@ int main(){
         }
         // zero crossing detection
         zeroCross = 0;
+        firstI = -1; // reset firstI
+        lastI = -1; // reset lastI
         for (i=0; i<sample; i++){
-            if ((ADCdata[i]>0 && ADCdata[i+1]<=0)
-                || (ADCdata[i]<0 && ADCdata[i+1]>=0))
+            if ((ADCdata[i]>offset && ADCdata[i+1]<=offset)
+                || (ADCdata[i]<offset && ADCdata[i+1]>=offset))
             {
-                firstI = (firstTag==-1) ?  i : -1;
+                if (firstI==-1) firstI=i;
                 lastI = i;
                 zeroCross++;
             }
         }
         halfCycle = zeroCross - 1; // =(number of cycle)*2
+        
         // freq = numOfCycle / (timeInterval*(lastI-fistI))
-        freq = (halfCycle/2.f) / ((1.f/sample)*(lastI-firstI));
+        //freq = (halfCycle/2.f) / ((1.f/sample)*(lastI-firstI+7)); // without correction factor
+        freq = (halfCycle/2.f) / ((1.f/sample)*(lastI-firstI+7)); // +7 is correction factor
+        if (freq<0) freq=0; //avoid negative caused by correction factor
+
         pc.printf("%f\r\n", freq); // print freq on computer
         wait(0.5); // wait 0.5 sec for next freq calculation
     }
